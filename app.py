@@ -1,0 +1,68 @@
+import os
+import requests
+import streamlit as st
+import base64
+from dotenv import load_dotenv
+
+# Load API key dari .env
+load_dotenv()
+api_key = os.getenv("API_KEY")
+
+# Cek jika API key tersedia
+if not api_key:
+    raise ValueError("API_KEY tidak ditemukan di .env!")
+
+# Folder untuk menyimpan gambar yang di-upload
+UPLOAD_FOLDER = "upload"
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Streamlit UI
+st.title("Sampah Bercuan")
+st.write("Upload gambar sampah untuk klasifikasi dan mendapatkan saldo e-wallet.")
+
+# Fungsi encode gambar ke base64
+def encode_image(file_path):
+    with open(file_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+# Fungsi untuk klasifikasi gambar menggunakan API
+def categorize_image(file_path):
+    try:
+        image_base64 = encode_image(file_path)
+        response = requests.post(
+            "https://dashscope-intl.aliyuncs.com/api/v1/multimodal/chat",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "qwen-vl-plus",
+                "messages": [
+                    {"role": "system", "content": "You are an AI that categorizes images."},
+                    {"role": "user", "content": "Apa kategori dari gambar ini?", "images": [f"data:image/jpeg;base64,{image_base64}"]}
+                ]
+            }
+        )
+        result = response.json()
+        return result.get("output", {}).get("text", "Kategori tidak ditemukan.")
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+# Layout utama untuk upload gambar
+uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "png", "jpeg"])
+st.markdown("---")
+
+# Menampilkan hasil upload gambar dan klasifikasi
+if uploaded_file is not None:
+    file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    # Tampilkan gambar yang diupload
+    st.image(file_path, caption="Gambar yang diupload", use_container_width=True)
+
+    # Klasifikasi gambar
+    kategori = categorize_image(file_path)
+    st.subheader("Hasil Klasifikasi")
+    st.write(kategori)
