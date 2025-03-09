@@ -66,3 +66,80 @@ if uploaded_file is not None:
     kategori = categorize_image(file_path)
     st.subheader("Hasil Klasifikasi")
     st.write(kategori)
+
+
+
+import streamlit as st
+import dashscope
+import os
+import base64
+from dotenv import load_dotenv
+
+# Load API key dari .env
+load_dotenv()
+api_key = os.getenv("DASHSCOPE_API_KEY")
+
+# Cek jika API key tersedia
+if not api_key:
+    raise ValueError("DASHSCOPE_API_KEY tidak ditemukan di .env!")
+
+# Set API key ke DashScope
+dashscope.api_key = api_key
+
+# Folder untuk menyimpan gambar yang di-upload
+UPLOAD_FOLDER = "upload"
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Fungsi untuk mengonversi gambar ke Base64
+def encode_image_to_base64(image_file):
+    return base64.b64encode(image_file.read()).decode("utf-8")
+
+# Setup Streamlit UI
+st.title("Sampah Bercuan - Klasifikasi Sampah dengan AI")
+st.write("Upload gambar sampah, dan AI akan mengklasifikasikannya.")
+
+# Upload file gambar
+uploaded_file = st.file_uploader("Pilih gambar", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+    # Simpan gambar ke folder upload
+    file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    
+    # Tampilkan gambar yang di-upload
+    st.image(uploaded_file, caption="Gambar yang diunggah", use_column_width=True)
+
+    # Encode gambar ke Base64
+    encoded_image = encode_image_to_base64(uploaded_file)
+
+    # Format pesan sesuai dengan Qwen-VL-Plus API
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Apa yang ada di gambar ini?"},
+                {"type": "image", "image": {"base64": encoded_image}}
+            ]
+        }
+    ]
+
+    # Kirim request ke API
+    with st.spinner("Menganalisis gambar..."):
+        try:
+            response = dashscope.ChatCompletion.create(
+                model="qwen-vl-plus",
+                messages=messages,
+                temperature=0.7,
+                max_tokens=500,
+                response_format={"type": "text"}
+            )
+            
+            # Ambil hasil analisis
+            result = response.output.choices[0].message["content"]
+            st.subheader("Hasil Analisis AI:")
+            st.write(result)
+
+        except Exception as e:
+            st.error(f"Terjadi kesalahan: {e}")
