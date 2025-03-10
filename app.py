@@ -18,7 +18,8 @@ st.title("Klasifikasi Gambar dengan Qwen VL Max")
 st.write("Masukkan URL gambar sampah, dan AI akan mengklasifikasikannya.")
 
 # Input URL gambar
-image_url = st.text_input("Masukkan URL gambar", "https://i.imgur.com/5xBqZe7.jpeg")
+image_url = st.text_input("Masukkan URL gambar", "https://images.weserv.nl/?url=i.imgur.com/5xBqZe7.jpeg
+")
 
 if image_url:
     # Tampilkan gambar dari URL
