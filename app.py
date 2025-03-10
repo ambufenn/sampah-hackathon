@@ -40,7 +40,6 @@ if response.status_code == 200:
 else:
     print(f"Terjadi kesalahan: {response.status_code} - {response.text}")
 
-
 # import streamlit as st
 # import os
 # import requests
