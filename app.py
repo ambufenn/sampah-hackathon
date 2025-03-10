@@ -55,6 +55,7 @@ if uploaded_file is not None:
     ]
 
     # Kirim request ke API
+   # Kirim request ke API
     with st.spinner("Menganalisis gambar..."):
         try:
             response = dashscope.MultiModalConversation.call(
@@ -64,29 +65,32 @@ if uploaded_file is not None:
                 max_tokens=500,
                 result_format="message"
             )
-
+    
             # Debugging: Tampilkan tipe respons
             st.subheader("Debugging API Response:")
             st.write("Tipe respons:", type(response))
-            st.json(response)
-
-            # Pastikan response memiliki format yang diharapkan
-            if isinstance(response, dict) and "output" in response:
-                output = response["output"]
-                
-                if isinstance(output, dict) and "text" in output:
-                    result = output["text"]
+            st.json(response)  # Tampilkan respons untuk debugging
+    
+            # Coba akses nilai hasil analisis
+            if isinstance(response, dict):
+                # Debugging: Tampilkan semua kunci dalam respons
+                st.write("Kunci dalam respons:", response.keys())
+    
+                output = response.get("output", None)
+    
+                # Pastikan output tidak None dan adalah dictionary
+                if output is not None and isinstance(output, dict):
+                    result = output.get("text", "Tidak ada hasil yang ditemukan.")
                 else:
                     result = "Format output tidak sesuai harapan."
             else:
                 result = "Respons API tidak dalam format yang benar."
-
+    
             st.subheader("Hasil Analisis AI:")
             st.write(result)
-
+    
         except Exception as e:
             st.error(f"Terjadi kesalahan: {e}")
-
 
 # import streamlit as st
 # import dashscope
