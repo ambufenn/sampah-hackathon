@@ -77,11 +77,11 @@ from dotenv import load_dotenv
 
 # Load API key dari .env
 load_dotenv()
-api_key = os.getenv("DASHSCOPE_API_KEY")
+api_key = os.getenv("API_KEY")
 
 # Cek jika API key tersedia
 if not api_key:
-    raise ValueError("DASHSCOPE_API_KEY tidak ditemukan di .env!")
+    raise ValueError("API_KEY tidak ditemukan di .env!")
 
 # Set API key ke DashScope
 dashscope.api_key = api_key
