@@ -75,7 +75,7 @@ if uploaded_file is not None:
     st.subheader("Hasil Analisis AI:")
     st.write(result)
 
-except Exception as e:
+    except Exception as e:
     st.error(f"Terjadi kesalahan: {e}")
 
 
