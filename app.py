@@ -56,22 +56,30 @@ if uploaded_file is not None:
 
     # Kirim request ke API
     with st.spinner("Menganalisis gambar..."):
-        try:
-            response = dashscope.Generation.call(
-                model="qwen-vl-plus",
-                messages=messages,
-                temperature=0.7,
-                max_tokens=500,
-                result_format="message"
-            )
+       try:
+    response = dashscope.Generation.call(
+        model="qwen-vl-max",
+        messages=messages,
+        temperature=0.7,
+        max_tokens=500,
+        result_format="message"
+    )
 
-            # Ambil hasil analisis
-            result = response.get("output", {}).get("text", "Tidak ada hasil.")
-            st.subheader("Hasil Analisis AI:")
-            st.write(result)
+    print("Response API:", response)  # Debugging untuk melihat isi response
 
-        except Exception as e:
-            st.error(f"Terjadi kesalahan: {e}")
+    if response and isinstance(response, dict):
+        result = response.get("output", {}).get("text", "Tidak ada hasil.")
+    else:
+        result = "Gagal mendapatkan hasil dari AI."
+
+    st.subheader("Hasil Analisis AI:")
+    st.write(result)
+
+except Exception as e:
+    st.error(f"Terjadi kesalahan: {e}")
+
+
+
 
 
 # # import os
