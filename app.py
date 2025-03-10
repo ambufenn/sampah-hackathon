@@ -1,65 +1,65 @@
-import streamlit as st
-import os
-import requests
-from dotenv import load_dotenv
+# import streamlit as st
+# import os
+# import requests
+# from dotenv import load_dotenv
 
-# Load API key dari .env
-load_dotenv()
-api_key = os.getenv("API_KEY")
+# # Load API key dari .env
+# load_dotenv()
+# api_key = os.getenv("API_KEY")
 
-if not api_key:
-    st.error("API key tidak ditemukan. Pastikan Anda telah mengatur .env dengan benar.")
-    st.stop()
+# if not api_key:
+#     st.error("API key tidak ditemukan. Pastikan Anda telah mengatur .env dengan benar.")
+#     st.stop()
 
-# Base URL API DashScope
-base_url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"
+# # Base URL API DashScope
+# base_url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"
 
-st.title("Klasifikasi Gambar dengan Qwen VL Max")
-st.write("Masukkan URL gambar sampah, dan AI akan mengklasifikasikannya.")
+# st.title("Klasifikasi Gambar dengan Qwen VL Max")
+# st.write("Masukkan URL gambar sampah, dan AI akan mengklasifikasikannya.")
 
-# Input URL gambar
-image_url = st.text_input("Masukkan URL gambar", "https://images.weserv.nl/?url=i.imgur.com/5xBqZe7.jpeg")
+# # Input URL gambar
+# image_url = st.text_input("Masukkan URL gambar", "https://images.weserv.nl/?url=i.imgur.com/5xBqZe7.jpeg")
 
-if image_url:
-    # Tampilkan gambar yang diinput
-    st.image(image_url, caption="Gambar yang diunggah", use_column_width=True)
+# if image_url:
+#     # Tampilkan gambar yang diinput
+#     st.image(image_url, caption="Gambar yang diunggah", use_column_width=True)
 
-    # Format request ke API DashScope
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": "Apa kategori dari sampah ini?"},
-                {"type": "image_url", "image_url": {"url": image_url}}
-            ]
-        }
-    ]
+#     # Format request ke API DashScope
+#     messages = [
+#         {
+#             "role": "user",
+#             "content": [
+#                 {"type": "text", "text": "Apa kategori dari sampah ini?"},
+#                 {"type": "image_url", "image_url": {"url": image_url}}
+#             ]
+#         }
+#     ]
 
-    if st.button("Kirim"):
-        with st.spinner("Menganalisis gambar..."):
-            try:
-                response = requests.post(
-                    base_url,
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "qwen-vl-max",
-                        "messages": messages
-                    }
-                )
+#     if st.button("Kirim"):
+#         with st.spinner("Menganalisis gambar..."):
+#             try:
+#                 response = requests.post(
+#                     base_url,
+#                     headers={
+#                         "Authorization": f"Bearer {api_key}",
+#                         "Content-Type": "application/json"
+#                     },
+#                     json={
+#                         "model": "qwen-vl-max",
+#                         "messages": messages
+#                     }
+#                 )
 
-                # Cek respons dari API
-                if response.status_code == 200:
-                    result = response.json()
-                    st.subheader("Hasil Analisis AI:")
-                    st.write(result)
-                else:
-                    st.error(f"Terjadi kesalahan: {response.status_code} - {response.text}")
+#                 # Cek respons dari API
+#                 if response.status_code == 200:
+#                     result = response.json()
+#                     st.subheader("Hasil Analisis AI:")
+#                     st.write(result)
+#                 else:
+#                     st.error(f"Terjadi kesalahan: {response.status_code} - {response.text}")
 
-            except Exception as e:
-                st.error(f"Terjadi kesalahan: {e}")
+#             except Exception as e:
+#                 st.error(f"Terjadi kesalahan: {e}")
 
 # import streamlit as st
 # import os
@@ -129,70 +129,70 @@ if image_url:
 #                 st.error(f"Terjadi kesalahan: {e}")
 
 
-# # import streamlit as st
-# # import requests
-# # import os
-# # import base64
-# # from dotenv import load_dotenv
+import streamlit as st
+import requests
+import os
+import base64
+from dotenv import load_dotenv
 
-# # # Load API Key dari .env
-# # load_dotenv()
-# # api_key = os.getenv("API_KEY")
+# Load API Key dari .env
+load_dotenv()
+api_key = os.getenv("API_KEY")
 
-# # # Pastikan API Key tersedia
-# # if not api_key:
-# #     st.error("API Key tidak ditemukan. Periksa file .env!")
-# #     st.stop()
+# Pastikan API Key tersedia
+if not api_key:
+    st.error("API Key tidak ditemukan. Periksa file .env!")
+    st.stop()
 
-# # # Setup Streamlit
-# # st.title("Klasifikasi Gambar Sampah dengan Qwen VL Max")
-# # st.write("Unggah gambar sampah, dan AI akan mengklasifikasikannya.")
+# Setup Streamlit
+st.title("Klasifikasi Gambar Sampah dengan Qwen VL Max")
+st.write("Unggah gambar sampah, dan AI akan mengklasifikasikannya.")
 
-# # # Upload file gambar
-# # uploaded_file = st.file_uploader("Pilih gambar", type=["jpg", "jpeg", "png"])
+# Upload file gambar
+uploaded_file = st.file_uploader("Pilih gambar", type=["jpg", "jpeg", "png"])
 
-# # if uploaded_file:
-# #     st.image(uploaded_file, caption="Gambar yang diunggah", use_column_width=True)
+if uploaded_file:
+    st.image(uploaded_file, caption="Gambar yang diunggah", use_column_width=True)
 
-# #     # Konversi gambar ke Base64
-# #     with st.spinner("Mengonversi gambar..."):
-# #         img_bytes = uploaded_file.getvalue()
-# #         img_base64 = base64.b64encode(img_bytes).decode("utf-8")
+    # Konversi gambar ke Base64
+    with st.spinner("Mengonversi gambar..."):
+        img_bytes = uploaded_file.getvalue()
+        img_base64 = base64.b64encode(img_bytes).decode("utf-8")
 
-# #     # Kirim gambar ke DashScope
-# #     messages = [
-# #         {
-# #             "role": "user",
-# #             "content": [
-# #                 {"type": "text", "text": "Apa kategori dari sampah ini?"},
-# #                 {"type": "image", "image": {"base64": img_base64}}
-# #             ]
-# #         }
-# #     ]
+    # Kirim gambar ke DashScope
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Apa kategori dari sampah ini?"},
+                {"type": "image", "image": {"base64": img_base64}}
+            ]
+        }
+    ]
 
-# #     # Kirim request ke DashScope
-# #     if st.button("Kirim"):
-# #         with st.spinner("Menganalisis gambar..."):
-# #             try:
-# #                 response = requests.post(
-# #                     "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
-# #                     headers={
-# #                         "Authorization": f"Bearer {api_key}",
-# #                         "Content-Type": "application/json"
-# #                     },
-# #                     json={"model": "qwen-vl-max", "messages": messages}
-# #                 )
+    # Kirim request ke DashScope
+    if st.button("Kirim"):
+        with st.spinner("Menganalisis gambar..."):
+            try:
+                response = requests.post(
+                    "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={"model": "qwen-vl-max", "messages": messages}
+                )
 
-# #                 # Cek hasil respons
-# #                 if response.status_code == 200:
-# #                     result = response.json()
-# #                     st.subheader("Hasil Analisis AI:")
-# #                     st.write(result)
-# #                 else:
-# #                     st.error(f"Terjadi kesalahan: {response.status_code} - {response.text}")
+                # Cek hasil respons
+                if response.status_code == 200:
+                    result = response.json()
+                    st.subheader("Hasil Analisis AI:")
+                    st.write(result)
+                else:
+                    st.error(f"Terjadi kesalahan: {response.status_code} - {response.text}")
 
-# #             except Exception as e:
-# #                 st.error(f"Terjadi kesalahan: {e}")
+            except Exception as e:
+                st.error(f"Terjadi kesalahan: {e}")
 
 # # # import streamlit as st
 # # # import os
