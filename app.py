@@ -69,10 +69,11 @@ if uploaded_file is not None:
             st.subheader("Debugging API Response:")
             st.json(response)
 
-            # Pastikan response dalam bentuk dictionary
+            # Periksa apakah response adalah dictionary
             if isinstance(response, dict):
                 output = response.get("output", {})
-                
+
+                # Pastikan output adalah dictionary
                 if isinstance(output, dict):
                     result = output.get("text", "Tidak ada hasil.")
                 else:
@@ -85,7 +86,6 @@ if uploaded_file is not None:
 
         except Exception as e:
             st.error(f"Terjadi kesalahan: {e}")
-
 
 
 # import streamlit as st
