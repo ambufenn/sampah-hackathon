@@ -43,12 +43,12 @@ if uploaded_file is not None:
     # Encode gambar ke Base64
     encoded_image = encode_image_to_base64(uploaded_file)
 
-    # Format pesan sesuai dengan API DashScope
+    # Format request untuk DashScope
     messages = [
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": "Apa yang ada di gambar ini?"},
+                {"type": "text", "text": "Apa kategori dari sampah ini?"},
                 {"type": "image", "image": {"base64": encoded_image}}
             ]
         }
@@ -56,27 +56,28 @@ if uploaded_file is not None:
 
     # Kirim request ke API
     with st.spinner("Menganalisis gambar..."):
-       try:
-        response = dashscope.Generation.call(
-        model="qwen-vl-max",
-        messages=messages,
-        temperature=0.7,
-        max_tokens=500,
-        result_format="message"
-    )
+        try:
+            response = dashscope.MultiModalConversation.call(
+                model="qwen-vl-max",
+                messages=messages,
+                temperature=0.7,
+                max_tokens=500,
+                result_format="message"
+            )
 
-        print("Response API:", response)  # Debugging untuk melihat isi response
+            # Debugging: print response
+            print("Response API:", response)
 
-        if response and isinstance(response, dict):
-            result = response.get("output", {}).get("text", "Tidak ada hasil.")
-        else:
-            result = "Gagal mendapatkan hasil dari AI."
-    
-        st.subheader("Hasil Analisis AI:")
-        st.write(result)
+            if response and response.get("output"):
+                result = response["output"].get("text", "Tidak ada hasil.")
+            else:
+                result = "Gagal mendapatkan hasil dari AI."
 
-    except Exception as e:
-        st.error(f"Terjadi kesalahan: {e}")
+            st.subheader("Hasil Analisis AI:")
+            st.write(result)
+
+        except Exception as e:
+            st.error(f"Terjadi kesalahan: {e}")
 
 
 
