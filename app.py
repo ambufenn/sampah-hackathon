@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 # Load API key from .env
 load_dotenv()
-api_key = os.getenv("DASHSCOPE_API_KEY")
+api_key = os.getenv("API_KEY")
 
 # Cek jika API key tersedia
 if not api_key:
