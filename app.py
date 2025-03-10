@@ -65,18 +65,18 @@ if uploaded_file is not None:
         result_format="message"
     )
 
-    print("Response API:", response)  # Debugging untuk melihat isi response
+        print("Response API:", response)  # Debugging untuk melihat isi response
 
-    if response and isinstance(response, dict):
-        result = response.get("output", {}).get("text", "Tidak ada hasil.")
-    else:
-        result = "Gagal mendapatkan hasil dari AI."
-
-    st.subheader("Hasil Analisis AI:")
-    st.write(result)
+        if response and isinstance(response, dict):
+            result = response.get("output", {}).get("text", "Tidak ada hasil.")
+        else:
+            result = "Gagal mendapatkan hasil dari AI."
+    
+        st.subheader("Hasil Analisis AI:")
+        st.write(result)
 
     except Exception as e:
-    st.error(f"Terjadi kesalahan: {e}")
+        st.error(f"Terjadi kesalahan: {e}")
 
 
 
