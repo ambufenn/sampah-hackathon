@@ -1,96 +1,76 @@
 import streamlit as st
 import dashscope
 import os
-import base64
 from dotenv import load_dotenv
 
-# Load API key dari .env
+# Load API key from .env
 load_dotenv()
 api_key = os.getenv("API_KEY")
 
-# Cek jika API key tersedia
+# Check if API key is available
 if not api_key:
-    raise ValueError("API_KEY tidak ditemukan di .env!")
+    raise ValueError("API_KEY not found in .env!")
 
-# Set API key ke DashScope
+# Set API key to DashScope
 dashscope.api_key = api_key
 
-# Folder untuk menyimpan gambar yang di-upload
+# Folder to save uploaded images
 UPLOAD_FOLDER = "upload"
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# Fungsi untuk mengonversi gambar ke Base64
-def encode_image_to_base64(image_file):
-    return base64.b64encode(image_file.read()).decode("utf-8")
-
 # Setup Streamlit UI
-st.title("Sampah Bercuan - Klasifikasi Sampah dengan AI")
-st.write("Upload gambar sampah, dan AI akan mengklasifikasikannya.")
+st.title("Waste Classification with AI")
+st.write("Upload an image of waste, and AI will classify it.")
 
-# Upload file gambar
-uploaded_file = st.file_uploader("Pilih gambar", type=["jpg", "jpeg", "png"])
+# Upload image file
+uploaded_file = st.file_uploader("Choose an image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Simpan gambar ke folder upload
+    # Save the uploaded image
     file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
     with open(file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     
-    # Tampilkan gambar yang di-upload
-    st.image(uploaded_file, caption="Gambar yang diunggah", use_column_width=True)
+    # Display the uploaded image
+    st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
 
-    # Encode gambar ke Base64
-    encoded_image = encode_image_to_base64(uploaded_file)
+    # Get the image URL (ensure it's publicly accessible)
+    image_url = f"http://localhost:8501/{file_path}"  # Change to a public URL if needed
 
-    # Format request untuk DashScope
+    # Prepare request for DashScope
     messages = [
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": "Apa kategori dari sampah ini?"},
-                {"type": "image", "image": {"base64": encoded_image}}
+                {"type": "text", "text": "What category does this waste belong to?"},
+                {"type": "image_url", "image_url": {"url": image_url}}
             ]
         }
     ]
 
-    # Kirim request ke API
-   # Kirim request ke API
-    with st.spinner("Menganalisis gambar..."):
+    # Send request to API
+    with st.spinner("Analyzing the image..."):
         try:
-            response = dashscope.MultiModalConversation.call(
-                model="qwen-vl-max",
+            response = dashscope.Generation.call(
+                api_key=api_key,
+                model="qwen-vl-plus",  # Change to the appropriate model
                 messages=messages,
-                temperature=0.7,
-                max_tokens=500,
                 result_format="message"
             )
-    
-            # Debugging: Tampilkan tipe respons
-            st.subheader("Debugging API Response:")
-            st.write("Tipe respons:", type(response))
-            st.json(response)  # Tampilkan respons untuk debugging
-    
-            # Coba akses nilai hasil analisis
-            if isinstance(response, dict):
-                # Debugging: Tampilkan semua kunci dalam respons
-                st.write("Kunci dalam respons:", response.keys())
-    
-                output = response.get("output", None)
-    
-                # Pastikan output tidak None dan adalah dictionary
-                if output is not None and isinstance(output, dict):
-                    result = output.get("text", "Tidak ada hasil yang ditemukan.")
-                else:
-                    result = "Format output tidak sesuai harapan."
-            else:
-                result = "Respons API tidak dalam format yang benar."
-    
-            st.subheader("Hasil Analisis AI:")
+
+            # Display API response
+            st.subheader("API Response:")
+            st.json(response)
+
+            # Extract and display the result
+            output = response.get("output", {})
+            result = output.get("text", "No result found.")
+            st.subheader("AI Analysis Result:")
             st.write(result)
-    
+
         except Exception as e:
-            st.error(f"Terjadi kesalahan: {e}")
+            st.error(f"An error occurred: {e}")
 
 # import streamlit as st
 # import dashscope
@@ -149,6 +129,7 @@ if uploaded_file is not None:
 #     ]
 
 #     # Kirim request ke API
+#    # Kirim request ke API
 #     with st.spinner("Menganalisis gambar..."):
 #         try:
 #             response = dashscope.MultiModalConversation.call(
@@ -158,29 +139,32 @@ if uploaded_file is not None:
 #                 max_tokens=500,
 #                 result_format="message"
 #             )
-
-#             # Debugging: Tampilkan seluruh respons API di Streamlit
+    
+#             # Debugging: Tampilkan tipe respons
 #             st.subheader("Debugging API Response:")
-#             st.json(response)
-
-#             # Periksa apakah response adalah dictionary
+#             st.write("Tipe respons:", type(response))
+#             st.json(response)  # Tampilkan respons untuk debugging
+    
+#             # Coba akses nilai hasil analisis
 #             if isinstance(response, dict):
-#                 output = response.get("output", {})
-
-#                 # Pastikan output adalah dictionary
-#                 if isinstance(output, dict):
-#                     result = output.get("text", "Tidak ada hasil.")
+#                 # Debugging: Tampilkan semua kunci dalam respons
+#                 st.write("Kunci dalam respons:", response.keys())
+    
+#                 output = response.get("output", None)
+    
+#                 # Pastikan output tidak None dan adalah dictionary
+#                 if output is not None and isinstance(output, dict):
+#                     result = output.get("text", "Tidak ada hasil yang ditemukan.")
 #                 else:
 #                     result = "Format output tidak sesuai harapan."
 #             else:
 #                 result = "Respons API tidak dalam format yang benar."
-
+    
 #             st.subheader("Hasil Analisis AI:")
 #             st.write(result)
-
+    
 #         except Exception as e:
 #             st.error(f"Terjadi kesalahan: {e}")
-
 
 # # import streamlit as st
 # # import dashscope
@@ -249,93 +233,27 @@ if uploaded_file is not None:
 # #                 result_format="message"
 # #             )
 
-# #             # Debugging: print response
-# #             print("Response API:", response)
+# #             # Debugging: Tampilkan seluruh respons API di Streamlit
+# #             st.subheader("Debugging API Response:")
+# #             st.json(response)
 
-# #             if response and response.get("output"):
-# #                 result = response["output"].get("text", "Tidak ada hasil.")
+# #             # Periksa apakah response adalah dictionary
+# #             if isinstance(response, dict):
+# #                 output = response.get("output", {})
+
+# #                 # Pastikan output adalah dictionary
+# #                 if isinstance(output, dict):
+# #                     result = output.get("text", "Tidak ada hasil.")
+# #                 else:
+# #                     result = "Format output tidak sesuai harapan."
 # #             else:
-# #                 result = "Gagal mendapatkan hasil dari AI."
+# #                 result = "Respons API tidak dalam format yang benar."
 
 # #             st.subheader("Hasil Analisis AI:")
 # #             st.write(result)
 
 # #         except Exception as e:
 # #             st.error(f"Terjadi kesalahan: {e}")
-
-
-
-
-
-# # # # import os
-# # # # import requests
-# # # # import streamlit as st
-# # # # import base64
-# # # # from dotenv import load_dotenv
-
-# # # # # Load API key dari .env
-# # # # load_dotenv()
-# # # # api_key = os.getenv("API_KEY")
-
-# # # # # Cek jika API key tersedia
-# # # # if not api_key:
-# # # #     raise ValueError("API_KEY tidak ditemukan di .env!")
-
-# # # # # Folder untuk menyimpan gambar yang di-upload
-# # # # UPLOAD_FOLDER = "upload"
-# # # # if not os.path.exists(UPLOAD_FOLDER):
-# # # #     os.makedirs(UPLOAD_FOLDER)
-
-# # # # # Streamlit UI
-# # # # st.title("Sampah Bercuan")
-# # # # st.write("Upload gambar sampah untuk klasifikasi dan mendapatkan saldo e-wallet.")
-
-# # # # # Fungsi encode gambar ke base64
-# # # # def encode_image(file_path):
-# # # #     with open(file_path, "rb") as image_file:
-# # # #         return base64.b64encode(image_file.read()).decode("utf-8")
-
-# # # # # Fungsi untuk klasifikasi gambar menggunakan API
-# # # # def categorize_image(file_path):
-# # # #     try:
-# # # #         image_base64 = encode_image(file_path)
-# # # #         response = requests.post(
-# # # #             "https://dashscope-intl.aliyuncs.com/api/v1/multimodal/chat",
-# # # #             headers={
-# # # #                 "Authorization": f"Bearer {api_key}",
-# # # #                 "Content-Type": "application/json",
-# # # #             },
-# # # #             json={
-# # # #                 "model": "qwen-vl-plus",
-# # # #                 "messages": [
-# # # #                     {"role": "system", "content": "You are an AI that categorizes images."},
-# # # #                     {"role": "user", "content": "Apa kategori dari gambar ini?", "images": [f"data:image/jpeg;base64,{image_base64}"]}
-# # # #                 ]
-# # # #             }
-# # # #         )
-# # # #         result = response.json()
-# # # #         return result.get("output", {}).get("text", "Kategori tidak ditemukan.")
-# # # #     except Exception as e:
-# # # #         return f"Error: {str(e)}"
-
-# # # # # Layout utama untuk upload gambar
-# # # # uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "png", "jpeg"])
-# # # # st.markdown("---")
-
-# # # # # Menampilkan hasil upload gambar dan klasifikasi
-# # # # if uploaded_file is not None:
-# # # #     file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
-# # # #     with open(file_path, "wb") as f:
-# # # #         f.write(uploaded_file.getbuffer())
-
-# # # #     # Tampilkan gambar yang diupload
-# # # #     st.image(file_path, caption="Gambar yang diupload", use_container_width=True)
-
-# # # #     # Klasifikasi gambar
-# # # #     kategori = categorize_image(file_path)
-# # # #     st.subheader("Hasil Klasifikasi")
-# # # #     st.write(kategori)
-
 
 
 # # # import streamlit as st
@@ -383,12 +301,12 @@ if uploaded_file is not None:
 # # #     # Encode gambar ke Base64
 # # #     encoded_image = encode_image_to_base64(uploaded_file)
 
-# # #     # Format pesan sesuai dengan Qwen-VL-Plus API
+# # #     # Format request untuk DashScope
 # # #     messages = [
 # # #         {
 # # #             "role": "user",
 # # #             "content": [
-# # #                 {"type": "text", "text": "Apa yang ada di gambar ini?"},
+# # #                 {"type": "text", "text": "Apa kategori dari sampah ini?"},
 # # #                 {"type": "image", "image": {"base64": encoded_image}}
 # # #             ]
 # # #         }
@@ -397,18 +315,174 @@ if uploaded_file is not None:
 # # #     # Kirim request ke API
 # # #     with st.spinner("Menganalisis gambar..."):
 # # #         try:
-# # #             response = dashscope.ChatCompletion.create(
-# # #                 model="qwen-vl-plus",
+# # #             response = dashscope.MultiModalConversation.call(
+# # #                 model="qwen-vl-max",
 # # #                 messages=messages,
 # # #                 temperature=0.7,
 # # #                 max_tokens=500,
-# # #                 response_format={"type": "text"}
+# # #                 result_format="message"
 # # #             )
-            
-# # #             # Ambil hasil analisis
-# # #             result = response.output.choices[0].message["content"]
+
+# # #             # Debugging: print response
+# # #             print("Response API:", response)
+
+# # #             if response and response.get("output"):
+# # #                 result = response["output"].get("text", "Tidak ada hasil.")
+# # #             else:
+# # #                 result = "Gagal mendapatkan hasil dari AI."
+
 # # #             st.subheader("Hasil Analisis AI:")
 # # #             st.write(result)
 
 # # #         except Exception as e:
 # # #             st.error(f"Terjadi kesalahan: {e}")
+
+
+
+
+
+# # # # # import os
+# # # # # import requests
+# # # # # import streamlit as st
+# # # # # import base64
+# # # # # from dotenv import load_dotenv
+
+# # # # # # Load API key dari .env
+# # # # # load_dotenv()
+# # # # # api_key = os.getenv("API_KEY")
+
+# # # # # # Cek jika API key tersedia
+# # # # # if not api_key:
+# # # # #     raise ValueError("API_KEY tidak ditemukan di .env!")
+
+# # # # # # Folder untuk menyimpan gambar yang di-upload
+# # # # # UPLOAD_FOLDER = "upload"
+# # # # # if not os.path.exists(UPLOAD_FOLDER):
+# # # # #     os.makedirs(UPLOAD_FOLDER)
+
+# # # # # # Streamlit UI
+# # # # # st.title("Sampah Bercuan")
+# # # # # st.write("Upload gambar sampah untuk klasifikasi dan mendapatkan saldo e-wallet.")
+
+# # # # # # Fungsi encode gambar ke base64
+# # # # # def encode_image(file_path):
+# # # # #     with open(file_path, "rb") as image_file:
+# # # # #         return base64.b64encode(image_file.read()).decode("utf-8")
+
+# # # # # # Fungsi untuk klasifikasi gambar menggunakan API
+# # # # # def categorize_image(file_path):
+# # # # #     try:
+# # # # #         image_base64 = encode_image(file_path)
+# # # # #         response = requests.post(
+# # # # #             "https://dashscope-intl.aliyuncs.com/api/v1/multimodal/chat",
+# # # # #             headers={
+# # # # #                 "Authorization": f"Bearer {api_key}",
+# # # # #                 "Content-Type": "application/json",
+# # # # #             },
+# # # # #             json={
+# # # # #                 "model": "qwen-vl-plus",
+# # # # #                 "messages": [
+# # # # #                     {"role": "system", "content": "You are an AI that categorizes images."},
+# # # # #                     {"role": "user", "content": "Apa kategori dari gambar ini?", "images": [f"data:image/jpeg;base64,{image_base64}"]}
+# # # # #                 ]
+# # # # #             }
+# # # # #         )
+# # # # #         result = response.json()
+# # # # #         return result.get("output", {}).get("text", "Kategori tidak ditemukan.")
+# # # # #     except Exception as e:
+# # # # #         return f"Error: {str(e)}"
+
+# # # # # # Layout utama untuk upload gambar
+# # # # # uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "png", "jpeg"])
+# # # # # st.markdown("---")
+
+# # # # # # Menampilkan hasil upload gambar dan klasifikasi
+# # # # # if uploaded_file is not None:
+# # # # #     file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+# # # # #     with open(file_path, "wb") as f:
+# # # # #         f.write(uploaded_file.getbuffer())
+
+# # # # #     # Tampilkan gambar yang diupload
+# # # # #     st.image(file_path, caption="Gambar yang diupload", use_container_width=True)
+
+# # # # #     # Klasifikasi gambar
+# # # # #     kategori = categorize_image(file_path)
+# # # # #     st.subheader("Hasil Klasifikasi")
+# # # # #     st.write(kategori)
+
+
+
+# # # # import streamlit as st
+# # # # import dashscope
+# # # # import os
+# # # # import base64
+# # # # from dotenv import load_dotenv
+
+# # # # # Load API key dari .env
+# # # # load_dotenv()
+# # # # api_key = os.getenv("API_KEY")
+
+# # # # # Cek jika API key tersedia
+# # # # if not api_key:
+# # # #     raise ValueError("API_KEY tidak ditemukan di .env!")
+
+# # # # # Set API key ke DashScope
+# # # # dashscope.api_key = api_key
+
+# # # # # Folder untuk menyimpan gambar yang di-upload
+# # # # UPLOAD_FOLDER = "upload"
+# # # # if not os.path.exists(UPLOAD_FOLDER):
+# # # #     os.makedirs(UPLOAD_FOLDER)
+
+# # # # # Fungsi untuk mengonversi gambar ke Base64
+# # # # def encode_image_to_base64(image_file):
+# # # #     return base64.b64encode(image_file.read()).decode("utf-8")
+
+# # # # # Setup Streamlit UI
+# # # # st.title("Sampah Bercuan - Klasifikasi Sampah dengan AI")
+# # # # st.write("Upload gambar sampah, dan AI akan mengklasifikasikannya.")
+
+# # # # # Upload file gambar
+# # # # uploaded_file = st.file_uploader("Pilih gambar", type=["jpg", "jpeg", "png"])
+
+# # # # if uploaded_file is not None:
+# # # #     # Simpan gambar ke folder upload
+# # # #     file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+# # # #     with open(file_path, "wb") as f:
+# # # #         f.write(uploaded_file.getbuffer())
+    
+# # # #     # Tampilkan gambar yang di-upload
+# # # #     st.image(uploaded_file, caption="Gambar yang diunggah", use_column_width=True)
+
+# # # #     # Encode gambar ke Base64
+# # # #     encoded_image = encode_image_to_base64(uploaded_file)
+
+# # # #     # Format pesan sesuai dengan Qwen-VL-Plus API
+# # # #     messages = [
+# # # #         {
+# # # #             "role": "user",
+# # # #             "content": [
+# # # #                 {"type": "text", "text": "Apa yang ada di gambar ini?"},
+# # # #                 {"type": "image", "image": {"base64": encoded_image}}
+# # # #             ]
+# # # #         }
+# # # #     ]
+
+# # # #     # Kirim request ke API
+# # # #     with st.spinner("Menganalisis gambar..."):
+# # # #         try:
+# # # #             response = dashscope.ChatCompletion.create(
+# # # #                 model="qwen-vl-plus",
+# # # #                 messages=messages,
+# # # #                 temperature=0.7,
+# # # #                 max_tokens=500,
+# # # #                 response_format={"type": "text"}
+# # # #             )
+            
+# # # #             # Ambil hasil analisis
+# # # #             result = response.output.choices[0].message["content"]
+# # # #             st.subheader("Hasil Analisis AI:")
+# # # #             st.write(result)
+
+# # # #         except Exception as e:
+# # # #             st.error(f"Terjadi kesalahan: {e}")
