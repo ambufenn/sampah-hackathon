@@ -57,7 +57,7 @@ if uploaded_file is not None:
     # Kirim request ke API
     with st.spinner("Menganalisis gambar..."):
        try:
-    response = dashscope.Generation.call(
+        response = dashscope.Generation.call(
         model="qwen-vl-max",
         messages=messages,
         temperature=0.7,
