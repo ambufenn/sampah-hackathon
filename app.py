@@ -1,3 +1,5 @@
+
+import streamlit as st
 import os
 import requests
 from dotenv import load_dotenv
@@ -8,113 +10,70 @@ api_key = os.getenv("API_KEY")
 
 # Cek jika API key tersedia
 if not api_key:
-    raise ValueError("API_KEY tidak ditemukan di .env!")
+    st.error("API key tidak ditemukan. Pastikan Anda telah mengatur .env dengan benar.")
+    st.stop()
 
-# Base URL dan endpoint untuk Qwen VL
-base_url = 'https://dashscope-intl.aliyuncs.com/api/v1'
-endpoint = '/services/aigc/multimodal-generation/generation'
+# Base URL dan endpoint
+base_url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+endpoint = "/chat/completions"
 
-# Contoh pesan untuk dikirim ke API
-messages = [
-    {'role': 'system', 'content': 'You are a helpful assistant.'},
-    {'role': 'user', 'content': 'Apa kategori dari sampah ini?'}
-]
+# Setup Streamlit UI
+st.title("Klasifikasi Gambar dengan Qwen VL Max")
+st.write("Unggah gambar sampah, dan AI akan mengklasifikasikannya.")
 
-# Kirim permintaan ke API
-response = requests.post(
-    f"{base_url}{endpoint}",
-    headers={
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    },
-    json={
-        "model": "qwen-vl-max",  # Ganti dengan model yang sesuai
-        "messages": messages
-    }
-)
+# Upload file gambar
+uploaded_file = st.file_uploader("Pilih gambar", type=["jpg", "jpeg", "png"])
 
-# Cek status respons
-if response.status_code == 200:
-    result = response.json()
-    print("Hasil:", result)
-else:
-    print(f"Terjadi kesalahan: {response.status_code} - {response.text}")
-
-# import streamlit as st
-# import os
-# import requests
-# from dotenv import load_dotenv
-
-# # Load API key from .env
-# load_dotenv()
-# api_key = os.getenv("API_KEY")
-
-# # Cek jika API key tersedia
-# if not api_key:
-#     st.error("API key tidak ditemukan. Pastikan Anda telah mengatur .env dengan benar.")
-#     st.stop()
-
-# # Base URL dan endpoint
-# base_url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-# endpoint = "/chat/completions"
-
-# # Setup Streamlit UI
-# st.title("Klasifikasi Gambar dengan Qwen VL Max")
-# st.write("Unggah gambar sampah, dan AI akan mengklasifikasikannya.")
-
-# # Upload file gambar
-# uploaded_file = st.file_uploader("Pilih gambar", type=["jpg", "jpeg", "png"])
-
-# if uploaded_file is not None:
-#     # Simpan gambar ke folder upload
-#     file_path = f"upload/{uploaded_file.name}"
-#     with open(file_path, "wb") as f:
-#         f.write(uploaded_file.getbuffer())
+if uploaded_file is not None:
+    # Simpan gambar ke folder upload
+    file_path = f"upload/{uploaded_file.name}"
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
     
-#     # Tampilkan gambar yang di-upload
-#     st.image(uploaded_file, caption="Gambar yang diunggah", use_column_width=True)
+    # Tampilkan gambar yang di-upload
+    st.image(uploaded_file, caption="Gambar yang diunggah", use_column_width=True)
 
-#     # Dapatkan URL gambar (pastikan ini dapat diakses oleh API)
-#     # Anda mungkin perlu mengupload gambar ke server yang dapat diakses publik
-#     image_url = f"http://localhost:8501/{file_path}"  # Ganti dengan URL yang sesuai
+    # Dapatkan URL gambar (pastikan ini dapat diakses oleh API)
+    # Anda mungkin perlu mengupload gambar ke server yang dapat diakses publik
+    image_url = f"http://localhost:8501/{file_path}"  # Ganti dengan URL yang sesuai
 
-#     # Format request untuk DashScope
-#     messages = [
-#         {
-#             "role": "user",
-#             "content": [
-#                 {"type": "text", "text": "Apa kategori dari sampah ini?"},
-#                 {"type": "image_url", "image_url": {"url": image_url}}
-#             ]
-#         }
-#     ]
+    # Format request untuk DashScope
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Apa kategori dari sampah ini?"},
+                {"type": "image_url", "image_url": {"url": image_url}}
+            ]
+        }
+    ]
 
-#     # Kirim request ke API
-#     if st.button("Kirim"):
-#         with st.spinner("Menganalisis gambar..."):
-#             try:
-#                 response = requests.post(
-#                     f"{base_url}{endpoint}",
-#                     headers={
-#                         "Authorization": f"Bearer {api_key}",
-#                         "Content-Type": "application/json"
-#                     },
-#                     json={
-#                         "model": "qwen-vl-max",
-#                         "messages": messages
-#                     }
-#                 )
+    # Kirim request ke API
+    if st.button("Kirim"):
+        with st.spinner("Menganalisis gambar..."):
+            try:
+                response = requests.post(
+                    f"{base_url}{endpoint}",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "qwen-vl-max",
+                        "messages": messages
+                    }
+                )
 
-#                 # Cek status respons
-#                 if response.status_code == 200:
-#                     result = response.json()
-#                     st.subheader("Hasil Analisis AI:")
-#                     st.write(result)
-#                 else:
-#                     st.error(f"Terjadi kesalahan: {response.status_code} - {response.text}")
+                # Cek status respons
+                if response.status_code == 200:
+                    result = response.json()
+                    st.subheader("Hasil Analisis AI:")
+                    st.write(result)
+                else:
+                    st.error(f"Terjadi kesalahan: {response.status_code} - {response.text}")
 
-#             except Exception as e:
-#                 st.error(f"Terjadi kesalahan: {e}")
+            except Exception as e:
+                st.error(f"Terjadi kesalahan: {e}")
 
 
 # # import streamlit as st
