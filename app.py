@@ -18,11 +18,10 @@ st.title("Klasifikasi Gambar dengan Qwen VL Max")
 st.write("Masukkan URL gambar sampah, dan AI akan mengklasifikasikannya.")
 
 # Input URL gambar
-image_url = st.text_input("Masukkan URL gambar", "https://images.weserv.nl/?url=i.imgur.com/5xBqZe7.jpeg
-")
+image_url = st.text_input("Masukkan URL gambar", "https://images.weserv.nl/?url=i.imgur.com/5xBqZe7.jpeg")
 
 if image_url:
-    # Tampilkan gambar dari URL
+    # Tampilkan gambar yang diinput
     st.image(image_url, caption="Gambar yang diunggah", use_column_width=True)
 
     # Format request ke API DashScope
@@ -61,7 +60,6 @@ if image_url:
 
             except Exception as e:
                 st.error(f"Terjadi kesalahan: {e}")
-
 
 # import streamlit as st
 # import os
